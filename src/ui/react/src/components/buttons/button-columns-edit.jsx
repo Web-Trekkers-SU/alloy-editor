@@ -44,6 +44,12 @@
          * @method componentDidMount
          */
         componentDidMount: function () {
+            // Save the editor selection before the popover steals focus
+            var nativeEditor = this.props.editor.get('nativeEditor');
+            var sel = nativeEditor.getSelection();
+            if (sel) {
+                this._bookmarks = sel.createBookmarks2();
+            }
             ReactDOM.findDOMNode(this.refs.cols).focus();
         },
 
@@ -66,6 +72,15 @@
          */
         _createColumns: function() {
             var nativeEditor = this.props.editor.get('nativeEditor');
+
+            // Restore the saved selection so columns insert at cursor position
+            if (this._bookmarks) {
+                nativeEditor.focus();
+                var sel = nativeEditor.getSelection();
+                if (sel) {
+                    sel.selectBookmarks(this._bookmarks);
+                }
+            }
 
             nativeEditor.execCommand('addColumns', {
                 how_many: this.state.cols
@@ -106,7 +121,7 @@
             }
 
             if (event.keyCode === KEY_ENTER) {
-                this._createTable();
+                this._createColumns();
             } else if (event.keyCode === KEY_ESC) {
                 this.props.cancelExclusive();
             }
